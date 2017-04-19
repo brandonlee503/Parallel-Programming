@@ -47,12 +47,6 @@
 #define BOTZ23  -8.
 #define BOTZ33  -3.
 
-// 1000 nodes = 25.358807 volume
-// 100 = 25.752346
-
-#define NUMNODES 4//5000//100
-#define NUMT 1// 4//100
-
 float Height( int, int );
 
 float
@@ -92,43 +86,49 @@ Height( int iu, int iv ) // iu,iv = 0 .. NUMNODES-1
 
 int main( int argc, char *argv[] )
 {
+	double startTime = omp_get_wtime();
 	omp_set_num_threads(NUMT);
 
 	// Tile areas
 	float fullTileArea = (  ( (XMAX-XMIN)/(float)(NUMNODES-1) )  *  ( ( YMAX - YMIN )/(float)(NUMNODES-1) )  );
 	float halfTileArea = fullTileArea / 2;
-	float quarterTileArea = halfTileArea / 2;
+	float quarterTileArea = halfTileArea / 4;
 
 	float volume = 0;
+	int iu = 0;
+	int iv = 0;
+	float height = 0;
+
+	int c_corner = 0;
+	int c_edge = 0;
+	int c_center = 0;
 
 	// Height Evaluation
-	#pragma omp parallel for reduction(+:volume)//,private(iu,iv,height)
+	#pragma omp parallel for reduction(+:volume),private(iu,iv,height)
 	for( int i = 0; i < NUMNODES*NUMNODES; i++ )
 	{
-		int iu = i % NUMNODES;
-		int iv = i / NUMNODES;
-		float height = Height(iu, iv);
-		//printf("iu: %i\n", iu);
-		//printf("iv: %i\n", iv);
-		//printf("height: %f\n", height);
+		iu = i % NUMNODES;
+		iv = i / NUMNODES;
+		height = Height(iu, iv);
 
-		// Check if full, half, or quarter tile
-		if (iu == 0 || iv == 0) {
-			if (iu == NUMNODES-1 || iv == NUMNODES-1) {
+		if (iu > 0 && iu < NUMNODES-1 && iv > 0 && iv < NUMNODES-1) {
+			// Full tile
+			volume += height * fullTileArea;
+		} else {
+			if ((iu == NUMNODES-1 || iu == 0) && (iv == NUMNODES-1 || iv == 0)) {
 				// Quarter
 				volume += height * quarterTileArea;
 			} else {
 				// Half
 				volume += height * halfTileArea;
 			}
-		} else if (iu == NUMNODES-1 && iv == NUMNODES-1) { // NxN case
-			// Quarter
-			volume += height * quarterTileArea;
-		} else {
-			// Full
-			volume += height * fullTileArea;
 		}
 	}
 
+	double endTime = omp_get_wtime();
+	double mflops = (double)NUMNODES*NUMNODES/(endTime-startTime)/1000000.;
+	printf("NUMNODES: %i\n", NUMNODES);
+	printf("NUMT: %i\n", NUMT);
 	printf("Total volume: %f\n", volume);
+	printf("Performance: %10.2lf MFLOPS\n\n", mflops);
 }

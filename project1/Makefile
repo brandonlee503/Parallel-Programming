@@ -1,5 +1,4 @@
 all:
-	g++ -o main main.cpp -lm -fopenmp
-	./main
+	sh getData.sh
 clean:
 	rm -r main
