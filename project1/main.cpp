@@ -47,8 +47,11 @@
 #define BOTZ23  -8.
 #define BOTZ33  -3.
 
-#define NUMNODES 5
-#define NUMT 5
+// 1000 nodes = 25.358807 volume
+// 100 = 25.752346
+
+#define NUMNODES 4//5000//100
+#define NUMT 1// 4//100
 
 float Height( int, int );
 
@@ -90,56 +93,42 @@ Height( int iu, int iv ) // iu,iv = 0 .. NUMNODES-1
 int main( int argc, char *argv[] )
 {
 	omp_set_num_threads(NUMT);
-	// . . .
 
-	// the area of a single full-sized tile:
-
+	// Tile areas
 	float fullTileArea = (  ( (XMAX-XMIN)/(float)(NUMNODES-1) )  *  ( ( YMAX - YMIN )/(float)(NUMNODES-1) )  );
 	float halfTileArea = fullTileArea / 2;
 	float quarterTileArea = halfTileArea / 2;
 
+	float volume = 0;
+
 	// Height Evaluation
-	#pragma omp parallel for
+	#pragma omp parallel for reduction(+:volume)//,private(iu,iv,height)
 	for( int i = 0; i < NUMNODES*NUMNODES; i++ )
 	{
 		int iu = i % NUMNODES;
 		int iv = i / NUMNODES;
-		printf("iu: %i\n", iu);
+		float height = Height(iu, iv);
+		//printf("iu: %i\n", iu);
+		//printf("iv: %i\n", iv);
+		//printf("height: %f\n", height);
+
+		// Check if full, half, or quarter tile
+		if (iu == 0 || iv == 0) {
+			if (iu == NUMNODES-1 || iv == NUMNODES-1) {
+				// Quarter
+				volume += height * quarterTileArea;
+			} else {
+				// Half
+				volume += height * halfTileArea;
+			}
+		} else if (iu == NUMNODES-1 && iv == NUMNODES-1) { // NxN case
+			// Quarter
+			volume += height * quarterTileArea;
+		} else {
+			// Full
+			volume += height * fullTileArea;
+		}
 	}
 
-
-
-	// sum up the weighted heights into the variable "volume"
-
-	// using an OpenMP for loop and a reduction:
-
-
-	// const double A = 0.;
-	// const double B = M_PI;
-	// double dx = ( B - A ) / (float) ( numSubdivisions – 1 );
-	// omp_set_num_threads( numThreads );
-	// double sum = ( Function( A ) + Function( B ) ) / 2.;
-	// #pragma omp parallel for default(none),shared(dx),reduction(+:sum)
-	// for( int i = 1; i < numSubdivisions - 1; i++ ) {
-	// 	double x = A + dx * (float) i;
-	// 	double f = Function( x );
-	// 	sum += f;
-	// }
-	// sum *= dx;
-
-
-	// const double A = 0.;
-	// const double B = M_PI;
-	// double dx = 1;//( B - A ) / (float) ( NUMNODES – 1 );
-	//
-	// double volume = 0;
-	// // Setup
-	// omp_set_num_threads(NUMT);
-	//
-	// #pragma omp parallel for default(none), shared(dx), reduction(+:volume)
-	// for (int i = 0; i < NUMNODES-1; i++) {
-	// 	/* code */
-	// }
-
-	// ?????
+	printf("Total volume: %f\n", volume);
 }
