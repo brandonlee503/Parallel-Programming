@@ -86,7 +86,6 @@ Height( int iu, int iv ) // iu,iv = 0 .. NUMNODES-1
 
 int main( int argc, char *argv[] )
 {
-	double startTime = omp_get_wtime();
 	omp_set_num_threads(NUMT);
 
 	// Tile areas
@@ -102,7 +101,8 @@ int main( int argc, char *argv[] )
 	int c_corner = 0;
 	int c_edge = 0;
 	int c_center = 0;
-
+	
+	double startTime = omp_get_wtime();
 	// Height Evaluation
 	#pragma omp parallel for reduction(+:volume),private(iu,iv,height)
 	for( int i = 0; i < NUMNODES*NUMNODES; i++ )
@@ -130,5 +130,6 @@ int main( int argc, char *argv[] )
 	printf("NUMNODES: %i\n", NUMNODES);
 	printf("NUMT: %i\n", NUMT);
 	printf("Total volume: %f\n", volume);
-	printf("Performance: %10.2lf MFLOPS\n\n", mflops);
+	printf("Performance: %10.2lf MFLOPS\n", mflops);
+	printf("Elapsed time: %10.2lf microseconds\n\n", 1000000. * (endTime-startTime));
 }
