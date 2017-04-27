@@ -30,7 +30,8 @@ int main( int argc, char *argv[] )
 		}
 	}
 	double endTime = omp_get_wtime();
+
  	// count of how many multiplications were done:
 	long int numMuled = (long int)ARRAY_SIZE * (long int)(ARRAY_SIZE+1) / 2;
-    fprintf( stderr, "Threads = %2d; ChunkSize = %5d; Scheduling=static ; MegaMults/sec = %10.2lf\n", NUMT, CHUNK_SIZE, (double)numMuled/(endTime-startTime)/1000000. );
+	fprintf(stderr, "MegaMults/sec = %10.2lf\n\n", (double)numMuled/(endTime-startTime)/1000000.);
 }
