@@ -7,7 +7,6 @@ do
 	for i in static,1 static,4096 dynamic,1 dynamic,4096
 	do IFS=","
 		set -- $i
-		echo $1 and $2
 		g++ -DNUMT=$thread -DSCHEDULING=$1 -DCHUNK_SIZE=$2 main.cpp -o main -lm -fopenmp
 		./main
 	done
