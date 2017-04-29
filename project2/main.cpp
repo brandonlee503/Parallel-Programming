@@ -20,6 +20,10 @@ int main( int argc, char *argv[] )
 {
 	omp_set_num_threads(NUMT);
 
+    for (int i = 0; i < ARRAY_SIZE - 1; i++) {
+        ARRAY[i] = Ranf(-1.f, 1.f);
+    }
+
 	float prod;
 	double startTime = omp_get_wtime();
 	#pragma omp parallel for schedule(SCHEDULING,CHUNK_SIZE),private(prod)
