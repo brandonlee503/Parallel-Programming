@@ -62,20 +62,20 @@ int main( int argc, char *argv[] ) {
             GrainDeer();
         }
 
-        // #pragma omp section
-        // {
-        //     Grain();
-        // }
-		//
-        // #pragma omp section
-        // {
-        //     TornadoStorm();
-        // }
-		//
-        // #pragma omp section
-        // {
-        //     Watcher();
-        // }
+        #pragma omp section
+        {
+            Grain();
+        }
+
+        #pragma omp section
+        {
+            TornadoStorm();
+        }
+
+        #pragma omp section
+        {
+            Watcher();
+        }
     }
 
     return 0;
@@ -121,7 +121,6 @@ float getPrecip() {
 void GrainDeer() {
     int spawnDeer, deadDeer;
     while (NowYear <= ENDYEAR) {
-		printf("deer nowyear: %i\n", NowYear);
         spawnDeer = 0;
         deadDeer = 0;
 
@@ -136,7 +135,7 @@ void GrainDeer() {
         } else {
             spawnDeer++;
         }
-		printf("deer 111: %i\n", NowYear);
+
         // DoneComputing
         #pragma omp barrier
         NowNumDeer += spawnDeer;
@@ -152,23 +151,67 @@ void GrainDeer() {
 
         // DonePrinting
         #pragma omp barrier
-		printf("deer wowowwo: %i\n", NowYear);
     }
 }
 
 void Grain() {
+	int deadGrain;
+	while (NowYear <= ENDYEAR) {
+		float tempFactor   = exp( -SQR( ( NowTemp - MIDTEMP ) / 10. ) );
+		float precipFactor = exp( -SQR( ( NowPrecip - MIDPRECIP ) / 10. ) );
 
+		// Compute temp variable
+		if (Storm) {
+			deadGrain = NowHeight - Ranf(&seed, 0., NowHeight-1);
+		}
+
+		// DoneComputing
+		#pragma omp barrier
+
+		NowHeight += tempFactor * precipFactor * GRAIN_GROWS_PER_MONTH;
+	    NowHeight -= (float)NowNumDeer * ONE_DEER_EATS_PER_MONTH;
+
+		if (NowHeight < 0) {
+			NowHeight = .5;
+		} else if (NowHeight > 100) {
+			NowHeight = 50;
+		}
+
+		// DoneAssigning
+		#pragma omp barrier
+
+		// DonePrinting
+		#pragma omp barrier
+	}
 }
 
 void TornadoStorm() {
+	while (NowYear <= ENDYEAR) {
+		int tempStorm;
 
+		// Storm happens when conditions are met
+		if (getPrecip() > AVG_PRECIP_PER_MONTH && getTemp() < AVG_TEMP) {
+			tempStorm = 1;
+		} else {
+			tempStorm = 0;
+		}
+
+		// DoneComputing
+		#pragma omp barrier
+
+		Storm = tempStorm;
+		// DoneAssigning
+		#pragma omp barrier
+
+		// DonePrinting
+		#pragma omp barrier
+	}
 }
 
 void Watcher() {
+	printf("Date | Temp | Precip | Deer | Grain | Fire\n");
     int updateYear, updateMonth, updateTemp, updatePrecip;
     while (NowYear <= ENDYEAR) {
-		printf("watcher nowyear: %i\n", NowYear);
-
         updateMonth = NowMonth + 1;
 		if (updateMonth > 11) {
 			updateYear = NowYear + 1;
@@ -190,10 +233,9 @@ void Watcher() {
 
 		// DoneAssigning
 		#pragma omp barrier
-		printf("%d-%d,%f,%f,%d,%f,%d\n", NowMonth + 1, NowYear, NowTemp, NowPrecip, NowNumDeer, NowHeight, Storm);
+		printf("%d/%d | %f | %f | %d | %f | %d\n", NowMonth + 1, NowYear, NowTemp, NowPrecip, NowNumDeer, NowHeight, Storm);
 
 		// DonePrinting
 		#pragma omp barrier
-
     }
 }
