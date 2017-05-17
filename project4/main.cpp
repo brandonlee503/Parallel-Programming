@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <fstream>
 
 // Globals
 int	NowYear;		// 2017 - 2022
@@ -29,7 +30,7 @@ const float RANDOM_TEMP             = 10.0;	// plus or minus noise
 const float MIDTEMP                 = 40.0;
 const float MIDPRECIP               = 10.0;
 
-const int ENDYEAR                   = 2023;
+const int ENDYEAR                   = 2022;
 
 // Function Prototypes
 float SQR(float x);
@@ -42,7 +43,6 @@ void GrainDeer();
 void Grain();
 void TornadoStorm();
 void Watcher();
-
 
 int main( int argc, char *argv[] ) {
 	omp_set_num_threads( 4 );
@@ -209,8 +209,14 @@ void TornadoStorm() {
 }
 
 void Watcher() {
-	printf("Date | Temp | Precip | Deer | Grain | Fire\n");
+	printf("Date | Temp | Precip | Deer | Grain | Storm\n");
     int updateYear, updateMonth, updateTemp, updatePrecip;
+
+	// Write to file
+	std::ofstream outputFile;
+	outputFile.open("outputFile.csv");
+	outputFile << "Date" << "," << "Temp" << "," << "Precip" << "," << "Deer" << "," << "Grain" << "," << "Storm" << std::endl;
+
     while (NowYear <= ENDYEAR) {
         updateMonth = NowMonth + 1;
 		if (updateMonth > 11) {
@@ -234,8 +240,10 @@ void Watcher() {
 		// DoneAssigning
 		#pragma omp barrier
 		printf("%d/%d | %f | %f | %d | %f | %d\n", NowMonth + 1, NowYear, NowTemp, NowPrecip, NowNumDeer, NowHeight, Storm);
+		outputFile << NowMonth+1 << "," << NowYear << "," << NowTemp << "," << NowPrecip << "," << NowNumDeer << "," << NowHeight << "," << Storm << std::endl;
 
 		// DonePrinting
 		#pragma omp barrier
     }
+	outputFile.close();
 }
