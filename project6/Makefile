@@ -1,5 +1,5 @@
 all:
-	sh getData.sh
+	sh proj6part1.sh
 
 clean:
-	rm -r arraymult simd.p5.o outputFile.csv
+	rm -r proj6part1 proj6part2 *.csv
