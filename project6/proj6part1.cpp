@@ -23,7 +23,7 @@
 #define NUM_ELEMENTS        NMB*NUM
 #define NUM_WORK_GROUPS     NUM_ELEMENTS/LOCAL_SIZE
 
-const char *            CL_FILE_NAME = { "proj6part1.cl" };
+const char *            CL_FILE_NAME = { "project6.cl" };
 const float TOL = 0.0001f;
 
 void Wait( cl_command_queue );
