@@ -73,7 +73,8 @@ main( int argc, char *argv[] )
         float *hC = new float[ NUM_ELEMENTS ];
         float *hF = new float[ NUM_ELEMENTS ];
 
-#ifdef MULT_SUM
+
+#ifdef MULT_ADD
         float *hD = new float [ NUM_ELEMENTS ];
 #endif
 
@@ -83,7 +84,8 @@ main( int argc, char *argv[] )
         {
                 hA[i] = hB[i] = (float) sqrt(  (double)i  );
                 hF[i] = 0.0;
-#ifdef MULT_SUM
+
+#ifdef MULT_ADD
                 hD[i] = hA[i];
 #endif
         }
@@ -121,7 +123,7 @@ main( int argc, char *argv[] )
                 fprintf( stderr, "clCreateBuffer failed (3)\n" );
 
 
-#ifdef MULT_SUM
+#ifdef MULT_ADD
         cl_mem dD = clCreateBuffer( context, CL_MEM_WRITE_ONLY, dataSize, NULL, &status );
         if( status != CL_SUCCESS )
                 fprintf( stderr, "clCreateBuffer failed (3)\n" );
@@ -140,8 +142,7 @@ main( int argc, char *argv[] )
         if( status != CL_SUCCESS )
                 fprintf( stderr, "clEnqueueWriteBuffer failed (2)\n" );
 
-
-#ifdef MULT_SUM
+#ifdef MULT_ADD
         status = clEnqueueWriteBuffer( cmdQueue, dD, CL_FALSE, 0, dataSize, hD, 0, NULL, NULL );
         if( status != CL_SUCCESS )
                 fprintf( stderr, "clEnqueueWriteBuffer failed (2)\n" );
@@ -187,11 +188,9 @@ main( int argc, char *argv[] )
         // 9. create the kernel object:
 
 #if defined MULT
-        printf("MULTT\n");
         cl_kernel kernel = clCreateKernel( program, "ArrayMult", &status );
-#elif defined MULT_SUM
-        printf("MULTTTTSUMMM\n");
-        cl_kernel kernel = clCreateKernel( program, "ArrayMultSum", &status );
+#elif defined MULT_ADD
+        cl_kernel kernel = clCreateKernel( program, "ArrayMultAdd", &status );
 #endif
         if( status != CL_SUCCESS )
                 fprintf( stderr, "clCreateKernel failed\n" );
@@ -218,7 +217,7 @@ main( int argc, char *argv[] )
                 if( status != CL_SUCCESS )
                         fprintf( stderr, "clSetKernelArg failed (3)\n" );
 
-#ifdef MULT_SUM
+#ifdef MULT_ADD
                 status = clSetKernelArg( kernel, 3, sizeof(cl_mem), &dD );
                 if( status != CL_SUCCESS )
                         fprintf( stderr, "clSetKernelArg failed (3)\n" );
@@ -259,9 +258,9 @@ main( int argc, char *argv[] )
         std::ofstream outputFile;
         outputFile.open("outputMULT.csv", std::ios_base::app);
         outputFile << NUM_ELEMENTS << "," << LOCAL_SIZE << "," << NUM_WORK_GROUPS << "," << sum_perfect / 10 << "," << max_perfect << std::endl;
-        #elif defined MULT_SUM
+        #elif defined MULT_ADD
         std::ofstream outputFile;
-        outputFile.open("outputMULT_SUM.csv", std::ios_base::app);
+        outputFile.open("outputMULT_ADD.csv", std::ios_base::app);
         outputFile << NUM_ELEMENTS << "," << LOCAL_SIZE << "," << NUM_WORK_GROUPS << "," << sum_perfect / 10 << "," << max_perfect << std::endl;
         #endif
 

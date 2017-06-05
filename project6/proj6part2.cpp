@@ -76,8 +76,7 @@ main( int argc, char *argv[] )
 
         // fill the host memory buffers:
 
-        for( int i = 0; i < NUM_ELEMENTS; i++ )
-        {
+        for( int i = 0; i < NUM_ELEMENTS; i++ ) {
                 hA[i] = hB[i] = (float) sqrt(  (double)i  );
                 if (i < NUM_WORK_GROUPS)
                         hD[i] = 0.0;
@@ -241,7 +240,7 @@ main( int argc, char *argv[] )
         outputFile << NUM_ELEMENTS << "," << LOCAL_SIZE << "," << NUM_WORK_GROUPS << "," << sum_perfect / 10 << "," << max_perfect << std::endl;
 
         fprintf(stderr, "\nNUM_ELEMENTS: %7d\tLOCAL_SIZE: %4d\tNUM_WORK_GROUPS: %10d\n", NUM_ELEMENTS, LOCAL_SIZE, NUM_WORK_GROUPS);
-        fprintf(stderr, "Avg Perfect %10.3lf MegaMultsPerSec\nMax Perfect %10.3lf MegaMultsPerSec\n", sum_perfect / 10, max_perfect );
+        fprintf(stderr, "Avg Perfect %10.3lf MegaReductionsPerSec\nMax Perfect %10.3lf MegaReductionsPerSec\n", sum_perfect / 10, max_perfect );
 
 #ifdef WIN32
         Sleep( 2000 );

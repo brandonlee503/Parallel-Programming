@@ -5,7 +5,7 @@ kernel void ArrayMult( global const float *dA, global const float *dB, global fl
         dC[gid] = dA[gid] * dB[gid];
 }
 
-kernel void ArrayMultSum( global const float *dA, global const float *dB, global float *dC, global const float *dD )
+kernel void ArrayMultAdd( global const float *dA, global const float *dB, global float *dC, global const float *dD )
 {
         int gid = get_global_id( 0 );
 
@@ -16,28 +16,23 @@ kernel void ArrayMultSum( global const float *dA, global const float *dB, global
 kernel void ArrayMultReduce( global const float *dA, global const float *dB, local float *products, global float *dC )
 {
         int gid = get_global_id( 0 );
+        int lid = get_local_id( 0 );
         int totalItems = get_local_size( 0 );
-        int t = get_local_id( 0 );
 
-        int wgNum = get_group_id( 0 );
+        int groupID = get_group_id( 0 );
+        products[ lid ] = dA[ gid ] * dB[ gid ];
 
-        products[ t ] = dA[ gid ] * dB[ gid ];
-
-
-        for( int offset = 1; offset < totalItems; offset *= 2 )
-        {
+        for ( int offset = 1; offset < totalItems; offset *= 2 ) {
                 int mask = 2 * offset - 1;
                 barrier( CLK_LOCAL_MEM_FENCE );
-                if( ( t & mask ) == 0 )
-                {
-                        products[ t ] += products[ t + offset ];
+                if( ( lid & mask ) == 0 ) {
+                        products[ lid ] += products[ lid + offset ];
                 }
         }
 
         barrier( CLK_LOCAL_MEM_FENCE );
-        if( t == 0 )
-        {
-            dC[ wgNum ] = products[ 0 ];
+        if( lid == 0 ) {
+            dC[ groupID ] = products[ 0 ];
         }
 
 }

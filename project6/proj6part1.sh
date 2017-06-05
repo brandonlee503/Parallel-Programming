@@ -7,7 +7,7 @@ do
 		g++ -o proj6part1 proj6part1.cpp /scratch/cuda-7.0/lib64/libOpenCL.so -lm -fopenmp -DNUM=$NUM -DLOCAL_SIZE=$local_size -DMULT
 		./proj6part1
 
-		g++ -o proj6part1 proj6part1.cpp /scratch/cuda-7.0/lib64/libOpenCL.so -lm -fopenmp -DNUM=$NUM -DLOCAL_SIZE=$local_size -DMULT_SUM
+		g++ -o proj6part1 proj6part1.cpp /scratch/cuda-7.0/lib64/libOpenCL.so -lm -fopenmp -DNUM=$NUM -DLOCAL_SIZE=$local_size -DMULT_ADD
 		./proj6part1
 	done
 done
