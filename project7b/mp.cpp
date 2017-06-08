@@ -33,8 +33,8 @@ int main(int argc, char const *argv[]) {
     }
     fclose(fp);
 
-    mp_parallelism(1, "1_mp_thread.csv");
-    mp_parallelism(8, "8_mp_thread.csv");
+    mp_parallelism(1, "1_mp_parallelism.csv");
+    mp_parallelism(8, "8_mp_parallelism.csv");
 
     return 0;
 }
