@@ -1,5 +1,8 @@
-all:
-	sh mp.sh
+all: part1
+
+part1:
+	g++ mp.cpp -o mp -lm -fopenmp
+	./mp
 
 # all:
 # 	sh proj6part1.sh
