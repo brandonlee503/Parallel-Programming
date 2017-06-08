@@ -1,18 +1,13 @@
-all: part1
+all: part1 part2
 
 part1:
-	g++ mp.cpp -o mp -lm -fopenmp
-	./mp
+	g++ mp.cpp -o part1_openMP -lm -fopenmp
+	./part1_openMP
 
-# all:
-# 	sh proj6part1.sh
-# 	sh proj6part2.sh
-
-# part1:
-# 	sh proj6part1.sh
-#
-# part2:
-# 	sh proj6part2.sh
+part2:
+	g++ -c SIMD/simd.p5.cpp -o simd.p5.o
+	g++ simd.cpp -o part2_simd simd.p5.o -lm -fopenmp
+	./part2_simd
 
 clean:
-	rm -r proj6part1 proj6part2 *.csv mp
+	rm -r *.csv part1_openMP part2_simd *.o

@@ -43,16 +43,14 @@ int main(int argc, char const *argv[]) {
  * Performs autocorrelation with OpenMP
  */
 void mp_parallelism(int threads, std::string file) {
-
+    omp_set_num_threads(threads);
     FILE *fp = std::fopen(file.c_str(), "w");
 
-    omp_set_num_threads(threads);
-
-    int avgLoops = 10;
-    double avgTime = 0;
     double peakTime = 1000;
+    double avgTime = 0;
+    int avgLoops = 10;
 
-    for (int loops = 0; loops < avgLoops; loops++) {
+    for (int i = 0; i < avgLoops; i++) {
 
         double startTime = omp_get_wtime();
 

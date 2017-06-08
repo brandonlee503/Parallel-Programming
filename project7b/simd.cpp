@@ -1,24 +1,19 @@
-#include <omp.h>
-#include <stdio.h>
+#include <iostream>
 #include <stdlib.h>
+#include <omp.h>
 #include <fstream>
+#include <stdio.h>
 #include "SIMD/simd.p5.h"
 
-// Define Globals
-#define SIZE    32768
-float Array[2*SIZE];
-float Sums[1*SIZE];
 
-// Globals
-float ARRAY_A[ARRAY_SIZE];
-float ARRAY_B[ARRAY_SIZE];
-float ARRAY_C[ARRAY_SIZE];
+// Define Globals
+int SIZE = 32768;
+float Array[2*32768];
+float Sums[1*32768];
+
 
 // Function Prototypes
-double SIMD_SSE_MUL();
-double SIMD_SSE_SUM();
-double MUL();
-double SUM();
+void simd_parallelism(std::string file);
 
 int main(int argc, char const *argv[]) {
 
@@ -39,77 +34,44 @@ int main(int argc, char const *argv[]) {
     }
     fclose(fp);
 
-    mp_parallelism();
+    simd_parallelism("simd_parallelism.csv");
 
     return 0;
 }
 
-int main( int argc, char *argv[] )
-{
-	// Initialize with random values
-	for (int i = 0; i < ARRAY_SIZE; i++) {
-		ARRAY_A[i] = Ranf(-1.f, 1.f);
-		ARRAY_B[i] = Ranf(-1.f, 1.f);
-	}
-
-	// Write to file
-	std::ofstream outputFile;
-	outputFile.open("outputFile.csv", std::ios_base::app);
-
-	// Perform multiplications
-	double sseMul = SIMD_SSE_MUL();
-	double sseSum = SIMD_SSE_SUM();
-	double mul = MUL();
-	double sum = SUM();
-	printf("\n");
-	outputFile << ARRAY_SIZE << "," << sseMul/mul << "," << sseSum/sum << std::endl;
-}
-
 /**
- * Utilizes SIMD SSE to multiply two arrays
+ * Performs autocorrelation with SIMD
  */
-double SIMD_SSE_MUL() {
-	double startTime = omp_get_wtime();
-	SimdMul(ARRAY_A, ARRAY_B, ARRAY_C, ARRAY_SIZE);
-	double endTime = omp_get_wtime();
-	fprintf(stderr, "SIMD_SSE_MUL MegaMults/sec = %10.2lf\n", (double)ARRAY_SIZE/(endTime-startTime)/1000000.);
-	return (double)ARRAY_SIZE/(endTime-startTime)/1000000.;
-}
+void simd_parallelism(std::string file) {
+    FILE *fp = std::fopen(file.c_str(), "w");
 
-/**
- * Utilizes SIMD SSE to multiply and reduce two arrays
- */
-double SIMD_SSE_SUM() {
-	double startTime = omp_get_wtime();
-	SimdMulSum(ARRAY_A, ARRAY_B, ARRAY_SIZE);
-	double endTime = omp_get_wtime();
-	fprintf(stderr, "SIMD_SSE_SUM MegaMults/sec = %10.2lf\n", (double)ARRAY_SIZE/(endTime-startTime)/1000000.);
-	return (double)ARRAY_SIZE/(endTime-startTime)/1000000.;
-}
+    double peakTime = 1000;
+    double avgTime = 0;
+    int avgLoops = 10;
 
-/**
- * Utilizes OMP to multiply two arrays
- */
-double MUL() {
-	double startTime = omp_get_wtime();
-	#pragma omp simd
-	for (int i = 0; i < ARRAY_SIZE; i++) {
-		ARRAY_C[i] = ARRAY_A[i] * ARRAY_B[i];
-	}
-	double endTime = omp_get_wtime();
-	fprintf(stderr, "MUL MegaMults/sec = %10.2lf\n", (double)ARRAY_SIZE/(endTime-startTime)/1000000.);
-	return (double)ARRAY_SIZE/(endTime-startTime)/1000000.;
-}
+    for (int i = 0; i < avgLoops; i++) {
+        double startTime = omp_get_wtime();
+        for (int shift = 0; shift < SIZE; shift++) {
+            Sums[shift] = SimdMulSum(Array, &Array[shift], SIZE);
+        }
+        double endTime = omp_get_wtime();
+        avgTime += endTime - startTime;
 
-/**
- * Multiply and reduce two arrays
- */
-double SUM() {
-	double startTime = omp_get_wtime();
-	for (int i = 0; i < ARRAY_SIZE; i++) {
-		ARRAY_C[i] = ARRAY_A[i] * ARRAY_B[i] + ARRAY_B[i];
-	}
-	double endTime = omp_get_wtime();
-	fprintf(stderr, "SUM MegaMults/sec = %10.2lf\n", (double)ARRAY_SIZE/(endTime-startTime)/1000000.);
-	return (double)ARRAY_SIZE/(endTime-startTime)/1000000.;
+        if (endTime - startTime < peakTime) {
+            peakTime = endTime - startTime;
+        }
+    }
+
+    avgTime /= avgLoops;
+
+    // Print titles and sums
+    std::fprintf(fp, "Threads,Peak Performance (Mega Adds Per Second), Average Performance (Mega Adds Per Second)\n");
+    std::fprintf(fp, "%lf,%lf\n", (double)SIZE * SIZE / peakTime / 1000000, (double)SIZE * SIZE / avgTime / 1000000);
+
+    std::fprintf(fp, "Index,Sum\n");
+    for (int i = 0; i < SIZE; i++) {
+        std::fprintf(fp, "%d,%f\n", i, Sums[i]);
+    }
+
+    std::fclose(fp);
 }
